@@ -6,7 +6,7 @@
 #include <memory>
 
 #include <SFML/Network/Packet.hpp>
-#include <enet/enet.h>
+#include <enet6/enet.h>
 
 #include "Common/CommonTypes.h"
 

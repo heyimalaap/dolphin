@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <enet/enet.h>
+#include <enet6/enet.h>
 #include <utility>
 
 namespace Common

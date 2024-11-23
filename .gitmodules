@@ -84,3 +84,6 @@
 [submodule "Externals/Vulkan-Headers"]
 	path = Externals/Vulkan-Headers
 	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "Externals/enet/enet6"]
+	path = Externals/enet/enet6
+	url = https://github.com/SirLynix/enet6.git

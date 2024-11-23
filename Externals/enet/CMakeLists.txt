@@ -59,7 +59,7 @@ if(HAS_SOCKLEN_T)
     add_definitions(-DHAS_SOCKLEN_T=1)
 endif()
 
-set(INCLUDE_FILES_PREFIX enet/include/enet)
+set(INCLUDE_FILES_PREFIX enet6/include/enet6)
 set(INCLUDE_FILES
     ${INCLUDE_FILES_PREFIX}/callbacks.h
     ${INCLUDE_FILES_PREFIX}/enet.h
@@ -73,15 +73,16 @@ set(INCLUDE_FILES
 )
 
 set(SOURCE_FILES
-    enet/callbacks.c
-    enet/compress.c
-    enet/host.c
-    enet/list.c
-    enet/packet.c
-    enet/peer.c
-    enet/protocol.c
-    enet/unix.c
-    enet/win32.c)
+    enet6/src/address.c
+    enet6/src/callbacks.c
+    enet6/src/compress.c
+    enet6/src/host.c
+    enet6/src/list.c
+    enet6/src/packet.c
+    enet6/src/peer.c
+    enet6/src/protocol.c
+    enet6/src/unix.c
+    enet6/src/win32.c)
 
 source_group(include FILES ${INCLUDE_FILES})
 source_group(source FILES ${SOURCE_FILES})
@@ -90,7 +91,7 @@ add_library(enet STATIC
     ${INCLUDE_FILES}
     ${SOURCE_FILES}
 )
-target_include_directories(enet PUBLIC enet/include)
+target_include_directories(enet PUBLIC enet6/include)
 
 dolphin_disable_warnings(enet)
 add_library(enet::enet ALIAS enet)
