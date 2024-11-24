@@ -136,7 +136,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
   if (!traversal_config.use_traversal)
   {
     // Direct Connection
-    m_client = enet_host_create(nullptr, 1, CHANNEL_COUNT, 0, 0);
+    m_client = enet_host_create(ENET_ADDRESS_TYPE_IPV6, nullptr, 1, CHANNEL_COUNT, 0, 0);
 
     if (m_client == nullptr)
     {
@@ -147,7 +147,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     m_client->mtu = std::min(m_client->mtu, NetPlay::MAX_ENET_MTU);
 
     ENetAddress addr;
-    enet_address_set_host(&addr, address.c_str());
+    enet_address_set_host(&addr, ENET_ADDRESS_TYPE_IPV6, address.c_str());
     addr.port = port;
 
     m_server = enet_host_connect(m_client, &addr, CHANNEL_COUNT, 0);
