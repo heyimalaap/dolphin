@@ -12,6 +12,8 @@
 #include "Common/Random.h"
 #include "Core/NetPlayProto.h"
 
+// TODO(snooze): Add IPv6 support in TraversalClient
+
 namespace Common
 {
 TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port,
@@ -49,7 +51,7 @@ TraversalClient::FailureReason TraversalClient::GetFailureReason() const
 
 void TraversalClient::ReconnectToServer()
 {
-  if (enet_address_set_host(&m_ServerAddress, m_Server.c_str()))
+  if (enet_address_set_host(&m_ServerAddress, ENET_ADDRESS_TYPE_ANY, m_Server.c_str()))
   {
     OnFailure(FailureReason::BadHost);
     return;
@@ -75,7 +77,9 @@ static ENetAddress MakeENetAddress(const TraversalInetAddress& address)
   }
   else
   {
-    eaddr.host = address.address[0];
+    // eaddr.host = address.address[0];
+    eaddr.type = ENET_ADDRESS_TYPE_IPV4;
+    memcpy(&eaddr.host.v4, &address.address[0], sizeof(eaddr.host.v4));
     eaddr.port = ntohs(address.port);
   }
   return eaddr;
@@ -97,7 +101,7 @@ void TraversalClient::ConnectToClient(std::string_view host)
 
 bool TraversalClient::TestPacket(u8* data, size_t size, ENetAddress* from)
 {
-  if (from->host == m_ServerAddress.host && from->port == m_ServerAddress.port)
+  if (enet_address_equal(from, &m_ServerAddress))
   {
     if (size < sizeof(TraversalPacket))
     {
@@ -298,8 +302,9 @@ void TraversalClient::NewTraversalTest()
   // create test socket
   if (m_TestSocket != ENET_SOCKET_NULL)
     enet_socket_destroy(m_TestSocket);
-  m_TestSocket = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
-  ENetAddress addr = {ENET_HOST_ANY, 0};
+  m_TestSocket = enet_socket_create(ENET_ADDRESS_TYPE_IPV4, ENET_SOCKET_TYPE_DATAGRAM);
+  ENetAddress addr;
+  enet_address_build_any(&addr, ENET_ADDRESS_TYPE_IPV4);
   if (m_TestSocket == ENET_SOCKET_NULL || enet_socket_bind(m_TestSocket, &addr) < 0)
   {
     // error, abort
@@ -373,8 +378,13 @@ void TraversalClient::HandleTraversalTest()
           waitCondition = 0;
           break;
         }
-        else if (rv < int(sizeof(packet)) || raddr.host != m_ServerAddress.host ||
-                 raddr.host != m_portAlt || packet.requestId != m_TestRequestId)
+        // Old code here was:
+        // else if (rv < int(sizeof(packet)) || !enet_address_equal_host(&raddr, &m_ServerAddress) ||
+        //          raddr.host != m_portAlt || packet.requestId != m_TestRequestId)
+        //          ^^^^^^^^^^ TODO(snooze): why are we comparing host with a port?
+        // For now, as a patch, I'll just use raddr.port instead of raddr.host
+        else if (rv < int(sizeof(packet)) || !enet_address_equal_host(&raddr, &m_ServerAddress) ||
+                 raddr.port != m_portAlt || packet.requestId != m_TestRequestId)
         {
           // irrelevant packet, ignore
           continue;
@@ -452,8 +462,11 @@ bool EnsureTraversalClient(const std::string& server, u16 server_port, u16 serve
     g_OldServerPortAlt = server_port_alt;
     g_OldListenPort = listen_port;
 
-    ENetAddress addr = {ENET_HOST_ANY, listen_port};
-    auto host = Common::ENet::ENetHostPtr{enet_host_create(&addr,                   // address
+    ENetAddress addr;
+    enet_address_build_any(&addr, ENET_ADDRESS_TYPE_IPV4);
+    addr.port = listen_port;
+    auto host = Common::ENet::ENetHostPtr{enet_host_create(ENET_ADDRESS_TYPE_IPV4,  // address type
+                                                           &addr,                   // address
                                                            50,                      // peerCount
                                                            NetPlay::CHANNEL_COUNT,  // channelLimit
                                                            0,    // incomingBandwidth

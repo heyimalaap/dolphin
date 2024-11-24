@@ -18,7 +18,8 @@ void WakeupThread(ENetHost* host)
     address.port = host->address.port;
   else
     enet_socket_get_address(host->socket, &address);
-  address.host = 0x0100007f;  // localhost
+  // address.host = 0x0100007f;  // localhost
+  enet_address_build_loopback(&address, ENET_ADDRESS_TYPE_IPV4);
   u8 byte = 0;
   ENetBuffer buf;
   buf.data = &byte;
