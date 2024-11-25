@@ -559,7 +559,7 @@ void NetPlayDialog::ResetExternalIP()
   m_external_ip_address = Common::Lazy<std::string>([]() -> std::string {
     Common::HttpRequest request;
     // ENet does not support IPv6, so IPv4 has to be used
-    request.UseIPv4();
+    // request.UseIPv4();
     Common::HttpRequest::Response response =
         request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
 
